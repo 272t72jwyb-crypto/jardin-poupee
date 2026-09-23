@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="fr">
+<head>
+ <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+ <meta name="theme-color" content="#203d37"><meta name="description" content="Le jardin de poupée : une promenade sous les cerisiers, des cadeaux à recueillir et un petit chat dans les branches.">
+ <title>Le jardin de poupée</title>
+ <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23203d37'/%3E%3Ctext x='32' y='47' text-anchor='middle' font-size='44'%3E🌸%3C/text%3E%3C/svg%3E">
+ <link rel="stylesheet" href="style.css?v=cry-4">
+</head>
+<body>
+ <main>
+  <header class="masthead"><span class="brand-mark">✿</span><h1>Le jardin de poupée</h1><span class="edition">Sous les cerisiers</span></header>
+  <section class="garden" aria-label="Jeu de collecte dans le jardin">
+   <canvas id="scene" aria-label="Déplace le panier à gauche et à droite pour attraper les cadeaux."></canvas>
+   <div class="hud"><div class="score-panel"><span>TA RÉCOLTE</span><strong id="score">0</strong><small>points</small></div><div class="hud-right"><span id="lives" role="img" aria-label="3 vies restantes">♥ ♥ ♥</span><button id="sound" class="icon-button" aria-label="Couper les sons" aria-pressed="true">♪</button><button id="pause" class="icon-button" aria-label="Mettre en pause" disabled>Ⅱ</button></div></div>
+   <div id="toast" role="status" aria-live="polite"></div>
+   <div class="veil" id="overlay"><section class="paper" aria-labelledby="panel-title"><span class="eyebrow" id="eyebrow">UNE PLUIE DE PETITS BONHEURS</span><h2 id="panel-title">Le jardin<br>de poupée</h2><p id="panel-text">Un panier, trois vies…<br>Attrape chaque cadeau avant qu’il ne touche le sol.</p><div class="prizes" id="prizes"><span>🌸<b>1</b></span><span>⭐<b>2</b></span><span><img id="prize-bear" src="assets/nounours-guimauve.png" alt="Nounours guimauve au chocolat"><b>3</b></span><span>💋<b>4</b></span><span>❤️<b>8</b></span><span><img id="prize-device" alt="Womanizer" hidden><i id="device-fallback">✦</i><b>12</b></span></div><button class="primary" id="play" disabled>Le jardin se réveille…</button><p class="instructions" id="instructions">← → au clavier · Glisse le doigt ou utilise les flèches</p></section></div>
+   <div class="touch-controls"><button id="left" aria-label="Aller à gauche">◀</button><span id="phase">Lumière du matin</span><button id="right" aria-label="Aller à droite">▶</button></div>
+  </section>
+  <footer><span>Fleurs <b>1</b><i>·</i> Étoiles <b>2</b><i>·</i> Nounours <b>3</b><i>·</i> Bouches <b>4</b><i>·</i> Cœurs <b>8</b><i>·</i> Womanizer <b>12</b></span><span class="footer-note">Chaque cadeau compte.</span></footer>
+ </main>
+ <script type="module" src="game.js?v=poupee-6"></script>
+</body>
+</html>
