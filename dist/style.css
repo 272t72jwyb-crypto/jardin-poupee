@@ -8,3 +8,9 @@
 .prizes img{max-width:100%}
 
 .footer-scores{min-width:0;max-width:100%;white-space:nowrap;overflow-x:auto}
+
+/* Same icon and score rows for emoji, loaded images and loading fallback. */
+.prizes>span{display:grid;grid-template-rows:32px 20px;row-gap:6px;justify-items:center;align-items:center}
+.prizes .prize-icon{display:flex;align-items:center;justify-content:center;width:32px;max-width:100%;height:32px;line-height:1;font-size:26px;grid-row:1}
+.prizes .prize-icon img{display:block;width:32px;height:32px;object-fit:contain}
+.prizes>span>b{display:block;grid-row:2;margin:0;line-height:20px;font-variant-numeric:tabular-nums}
