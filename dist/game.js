@@ -1,4 +1,4 @@
-import {GardenGame} from './engine.mjs?v=tablet-cat-11';
+import {GardenGame} from './engine.mjs?v=extra-life-12';
 import {catPose} from './cat.mjs?v=tablet-cat-11';
 import {BirdFlock,PERCHES,perchEnvironment} from './birds.mjs?v=gag-7';
 import {GardenAudio} from './audio.mjs?v=gag-7';
@@ -47,6 +47,7 @@ function clearInput(){keys.clear();held.clear();drag=null;$('left').classList.re
 game.onEvent=(event,value)=>{
  hud();
  if(event==='catch')gardenAudio.catch(value);
+ if(event==='extra-life'){$('toast').textContent=`♥ +${value} vie${value>1?'s':''} !`;toastUntil=clock+2;}
  if(event==='miss'){clearInput();gardenAudio.loss();$('toast').textContent='Oh non… −1 vie';toastUntil=Infinity;}
  if(event==='recover'){clearInput();toastUntil=0;}
  if(event==='over'){toastUntil=0;$('pause').disabled=true;clearInput();overlay('over');}
