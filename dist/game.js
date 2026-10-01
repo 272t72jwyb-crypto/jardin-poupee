@@ -6,6 +6,7 @@ const $=id=>document.getElementById(id),canvas=$('scene'),ctx=canvas.getContext(
 let W=1000,H=700,clock=0,last=0,artReady=false,muted=false,drag=null,toastUntil=0;
 const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches,keys=new Set(),held=new Set();
 const images={},sprites=[];let starSprite,heartSprite,bearSprite,gagSprite;
+let mobileMoon,mobileNightCache;
 const load=src=>new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error(src));img.src=src;});
 function fit(){const rect=canvas.getBoundingClientRect();W=rect.width;H=rect.height;const dpr=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);game.resize(W,H);}
 new ResizeObserver(fit).observe(canvas);
@@ -40,7 +41,33 @@ const flock=new BirdFlock();
 flock.onLand=(x,y)=>petalBurst(x*W,y*H);
 let burst=[];
 function petalBurst(x,y){if(reduced)return;for(let i=0;i<8;i++)burst.push({x,y,vx:(Math.random()-.5)*45,vy:10+Math.random()*25,life:4,size:2+Math.random()*3});}
-function background(img){if(!img)return;if(game.mobile&&images.mobile){const m=images.mobile,half=m.width/2;ctx.drawImage(m,img===images.night?half:0,0,half,m.height,0,0,W,H);}else ctx.drawImage(img,0,0,img.width,img.height,0,0,W,H);}
+function mobileNightBackground(){
+ const m=images.mobile,half=m.width/2;
+ // The mobile atlas is 887 × 1774. Re-render its painted moon uniformly,
+ // over the stretched moon, without moving the scenery or branch anchors.
+ const unit=m.height/1774,cx=747*unit,cy=727*unit,r=44*unit;
+ if(!mobileMoon){
+  mobileMoon=document.createElement('canvas');mobileMoon.width=mobileMoon.height=Math.round(r*2);
+  const g=mobileMoon.getContext('2d'),size=mobileMoon.width;
+  g.drawImage(m,cx-r,cy-r,r*2,r*2,0,0,size,size);
+  const mask=g.createRadialGradient(size/2,size/2,size*34/88,size/2,size/2,size/2);
+  mask.addColorStop(0,'rgba(0,0,0,1)');mask.addColorStop(1,'rgba(0,0,0,0)');
+  g.globalCompositeOperation='destination-in';g.fillStyle=mask;g.fillRect(0,0,size,size);
+ }
+ // Cache the opaque night layer at device resolution. Applying the day/night
+ // opacity once avoids a visible patch during the transition and costs no
+ // extra per-frame compositing or pixel reads on iPhone.
+ const width=canvas.width,height=canvas.height;
+ if(!mobileNightCache||mobileNightCache.width!==width||mobileNightCache.height!==height){
+  mobileNightCache=document.createElement('canvas');mobileNightCache.width=width;mobileNightCache.height=height;
+  const g=mobileNightCache.getContext('2d');
+  g.drawImage(m,half,0,half,m.height,0,0,width,height);
+  const diameter=r*2*Math.max(width/half,height/m.height);
+  g.drawImage(mobileMoon,(cx-half)/half*width-diameter/2,cy/m.height*height-diameter/2,diameter,diameter);
+ }
+ return mobileNightCache;
+}
+function background(img){if(!img)return;if(game.mobile&&images.mobile){const m=images.mobile,half=m.width/2;if(img===images.night)ctx.drawImage(mobileNightBackground(),0,0,W,H);else ctx.drawImage(m,0,0,half,m.height,0,0,W,H);}else ctx.drawImage(img,0,0,img.width,img.height,0,0,W,H);}
 function drawCat(t){if(reduced){sprite(sprites[6],W*.83,H*.19,W*.1,H*.075);return;}const cycle=t%28;let x,y,jump=false,flip=false;if(cycle<9){x=.72+cycle/9*.16;y=.205;flip=false;}else if(cycle<11){const p=(cycle-9)/2;x=.88-p*.16;y=.205-Math.sin(p*Math.PI)*.11;jump=true;flip=true;}else if(cycle<18){x=.72-(cycle-11)/7*.09;y=.205;flip=true;}else if(cycle<20){const p=(cycle-18)/2;x=.63+p*.1;y=.205-Math.sin(p*Math.PI)*.09;jump=true;}else{x=.73;y=.205;}if(game.mobile){x=.25+(x-.63)*1.3;y=.095+(x-.25)*.11-(jump?Math.sin((cycle%1)*Math.PI)*.03:0);}else y-=.073;const walk=cycle<9||cycle>11&&cycle<18;const bob=walk?Math.sin(t*12)*1.4:0;sprite(sprites[jump?7:6],x*W,y*H+bob,W*(game.mobile?.14:.095),H*.10,flip,walk?Math.sin(t*9)*.025:0);if(game.state!=='paused'&&game.state!=='hurt'&&(cycle>=11&&cycle<11.06||cycle>=20&&cycle<20.06))petalBurst(x*W,(y+.02)*H);}
 // Flight poses have their feet aligned, so wing changes never move the body.
 const flightRects=[
