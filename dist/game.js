@@ -1,11 +1,11 @@
-import {GardenGame} from './engine.mjs?v=cry-4';
-import {BirdFlock,PERCHES,perchEnvironment} from './birds.mjs';
-import {GardenAudio} from './audio.mjs?v=cry-4';
+import {GardenGame} from './engine.mjs?v=gag-7';
+import {BirdFlock,PERCHES,perchEnvironment} from './birds.mjs?v=gag-7';
+import {GardenAudio} from './audio.mjs?v=gag-7';
 const gardenAudio=new GardenAudio();
 const $=id=>document.getElementById(id),canvas=$('scene'),ctx=canvas.getContext('2d'),game=new GardenGame();
 let W=1000,H=700,clock=0,last=0,artReady=false,muted=false,drag=null,toastUntil=0;
 const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches,keys=new Set(),held=new Set();
-const images={},sprites=[];let starSprite,heartSprite,bearSprite;
+const images={},sprites=[];let starSprite,heartSprite,bearSprite,gagSprite;
 const load=src=>new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error(src));img.src=src;});
 function fit(){const rect=canvas.getBoundingClientRect();W=rect.width;H=rect.height;const dpr=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);game.resize(W,H);}
 new ResizeObserver(fit).observe(canvas);
@@ -68,7 +68,7 @@ function drawPetals(t,dt){for(const p of petals){const x=((p.x+t*p.speed*.23+Mat
 function draw(dt){ctx.clearRect(0,0,W,H);const t=clock,cycle=game.state==='ready'?0:game.time/105;const night=(1-Math.cos(cycle*Math.PI*2))/2; background(images.day);if(images.night){ctx.globalAlpha=night;background(images.night);ctx.globalAlpha=1;}const phase=night<.18?'Lumière du matin':night<.55?'Sous le ciel rose':night<.85?'Le jardin s’endort':'Sous les étoiles';if($('phase').textContent!==phase)$('phase').textContent=phase;
  if(night>.4&&!reduced){ctx.save();ctx.globalAlpha=(night-.4)*.8;for(let i=0;i<13;i++){const x=(.08+((i*.163)% .86))*W+Math.sin(t*.6+i)*9,y=H*(.62+((i*.117)%.30))+Math.cos(t+i)*7;ctx.fillStyle=`rgba(255,239,159,${.3+.5*Math.sin(t*1.5+i)**2})`;ctx.shadowColor='#fff9ac';ctx.shadowBlur=10;ctx.beginPath();ctx.arc(x,y,1.5,0,7);ctx.fill();}ctx.restore();}
  if(artReady){const manH=H*(game.mobile?.11:.15);const source=game.thrower;sprite(sprites[source.pose>0?5:4],source.x*W,source.y*H-manH*.30,manH*1.3,manH,source.x>.5);drawCat(reduced?0:t);drawBirds(t,dt,night);
- for(const i of game.items){const size=Math.min(W,H)*(game.mobile?.073:.056);const s=[sprites[13],starSprite,bearSprite,sprites[14],heartSprite,sprites[15]][i.kind];ctx.save();ctx.shadowColor=['#fbc5db','#ffe69c','#e6b780','#ff8196','#ff7a93','#fca8d5'][i.kind];ctx.shadowBlur=night>0.4?15:5;sprite(s,i.x,i.y,size,size,false,Math.sin(i.age*2+i.spin)*.17);ctx.restore();}
+ for(const i of game.items){const size=Math.min(W,H)*(game.mobile?.073:.056);const s=[sprites[13],starSprite,bearSprite,sprites[14],heartSprite,sprites[15],gagSprite][i.kind];ctx.save();ctx.shadowColor=['#fbc5db','#ffe69c','#e6b780','#ff8196','#ff7a93','#fca8d5','#ff7466'][i.kind];ctx.shadowBlur=night>0.4?15:5;sprite(s,i.x,i.y,size,size,false,Math.sin(i.age*2+i.spin)*.17);ctx.restore();}
  const crying=game.cry>0,moving=game.state==='playing'&&Math.abs(game.player-game.previousPlayer)>.0001,dir=game.player<game.previousPlayer;
  const pose=crying?3:moving?(dir?2:1):0,ph=game.playerHeight,py=H-18-ph/2,cryTime=2-game.cry;
  const sob=crying&&!reduced?Math.sin(cryTime*23)*Math.sin(cryTime*7)*ph*.012:0;
@@ -95,7 +95,7 @@ function frame(ms){
  }
  draw(frozen||game.state==='hurt'?0:dt);requestAnimationFrame(frame);
 }
-async function loadArt(){$('play').disabled=true;$('play').textContent='Le jardin se réveille…';try{const [day,night,atlas,mobile,star,heart,flight,bear]=await Promise.all([load('assets/day.png'),load('assets/night.png'),load('assets/atlas.png'),load('assets/mobile.png'),load('assets/star.png'),load('assets/heart.png'),load('assets/birds-flight.png'),load('assets/nounours-guimauve.png')]);images.day=day;images.night=night;images.mobile=mobile;images.flight=flight;parseAtlas(atlas);bearSprite=trimSprite(bear);$('prize-bear').src=cutoutData(bearSprite);starSprite={img:star,x:0,y:0,w:star.width,h:star.height};heartSprite={img:heart,x:0,y:0,w:heart.width,h:heart.height};$('prize-device').src=cutoutData(sprites[15]);$('prize-device').hidden=false;$('device-fallback').hidden=true;artReady=true;$('play').disabled=false;$('play').textContent='Entrer dans le jardin';}catch(e){$('play').disabled=false;$('play').textContent='Réessayer';$('panel-text').textContent='Le décor n’a pas pu se charger. Vérifie ta connexion et réessaie.';console.error('Chargement du jardin :',e.message);}}
+async function loadArt(){$('play').disabled=true;$('play').textContent='Le jardin se réveille…';try{const [day,night,atlas,mobile,star,heart,flight,bear,gag]=await Promise.all([load('assets/day.png'),load('assets/night.png'),load('assets/atlas.png'),load('assets/mobile.png'),load('assets/star.png'),load('assets/heart.png'),load('assets/birds-flight.png'),load('assets/nounours-guimauve.png'),load('assets/gag-ball.webp')]);images.day=day;images.night=night;images.mobile=mobile;images.flight=flight;parseAtlas(atlas);bearSprite=trimSprite(bear);gagSprite=trimSprite(gag);$('prize-bear').src=cutoutData(bearSprite);starSprite={img:star,x:0,y:0,w:star.width,h:star.height};heartSprite={img:heart,x:0,y:0,w:heart.width,h:heart.height};$('prize-device').src=cutoutData(sprites[15]);$('prize-device').hidden=false;$('device-fallback').hidden=true;artReady=true;$('play').disabled=false;$('play').textContent='Entrer dans le jardin';}catch(e){$('play').disabled=false;$('play').textContent='Réessayer';$('panel-text').textContent='Le décor n’a pas pu se charger. Vérifie ta connexion et réessaie.';console.error('Chargement du jardin :',e.message);}}
 fit();hud();requestAnimationFrame(frame);loadArt();
 if(document.modelContext?.registerTool){
  const lifecycle=new AbortController();window.addEventListener('pagehide',()=>lifecycle.abort(),{once:true});

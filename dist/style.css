@@ -3,6 +3,6 @@
 
 [hidden]{display:none!important}
 
-.prizes{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}.prizes>span{width:auto;min-width:0}
+.prizes{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}.prizes>span{width:auto;min-width:0}
 
 .prizes img{max-width:100%}

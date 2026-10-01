@@ -13,4 +13,4 @@ for(const [w,h] of [[1200,700],[390,730]]){
 }
 console.log('PASS: desktop/mobile scoring, missed objects, life loss, game over, pause, restart, boundaries and trajectories.');
 
-const counts=Array(6).fill(0);for(let i=0;i<10000;i++)counts[chooseKind((i+.5)/10000)]++;assert.deepEqual(counts,[3400,2500,1800,1300,700,300]);assert.equal(VALUES[chooseKind(.65)],3);assert.equal(FREQUENCIES.reduce((a,b)=>a+b),100);console.log("PASS: six collectible values, bear +3, and approved rarity distribution.");
+const counts=Array(VALUES.length).fill(0);for(let i=0;i<10000;i++)counts[chooseKind((i+.5)/10000)]++;assert.deepEqual(counts,[3230,2375,1710,1235,665,285,500]);assert.equal(VALUES[chooseKind(.65)],3);assert.ok(Math.abs(FREQUENCIES.reduce((a,b)=>a+b)-100)<1e-9);assert.equal(VALUES[chooseKind(.9499)],12);assert.equal(VALUES[chooseKind(.95)],50);assert.equal(VALUES[chooseKind(.9999)],50);console.log("PASS: seven collectible values, gag ball +50, exactly 5% probability, and preserved relative rarity.");

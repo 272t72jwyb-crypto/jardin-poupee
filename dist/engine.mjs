@@ -1,5 +1,5 @@
-export const VALUES=[1,2,3,4,8,12];
-export const FREQUENCIES=[34,25,18,13,7,3];
+export const VALUES=[1,2,3,4,8,12,50];
+export const FREQUENCIES=[32.3,23.75,17.1,12.35,6.65,2.85,5];
 export function chooseKind(randomValue){let limit=0;const roll=randomValue*100;for(let i=0;i<FREQUENCIES.length;i++){limit+=FREQUENCIES[i];if(roll<limit)return i;}return FREQUENCIES.length-1;}
 export class GardenGame{
  constructor(random=Math.random){this.random=random;this.resize(1000,700);this.state='ready';this.score=0;this.lives=3;this.time=0;this.items=[];this.effects=[];this.player=.5;this.previousPlayer=.5;this.cry=0;this.pausedFrom=null;this.spawnIn=1;this.thrower={x:.2,y:.15,pose:0};this.onEvent=()=>{};}
