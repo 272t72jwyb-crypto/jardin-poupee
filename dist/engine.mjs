@@ -3,7 +3,7 @@ export const FREQUENCIES=[32.3,23.75,17.1,12.35,6.65,2.85,5];
 export function chooseKind(randomValue){let limit=0;const roll=randomValue*100;for(let i=0;i<FREQUENCIES.length;i++){limit+=FREQUENCIES[i];if(roll<limit)return i;}return FREQUENCIES.length-1;}
 export class GardenGame{
  constructor(random=Math.random){this.random=random;this.resize(1000,700);this.state='ready';this.score=0;this.lives=3;this.time=0;this.items=[];this.effects=[];this.player=.5;this.previousPlayer=.5;this.cry=0;this.pausedFrom=null;this.spawnIn=1;this.thrower={x:.2,y:.15,pose:0};this.onEvent=()=>{};}
- resize(w,h){const ow=this.w||w,oh=this.h||h;this.w=w;this.h=h;for(const i of this.items||[]){i.x*=w/ow;i.y*=h/oh;i.vx*=w/ow;i.vy*=h/oh;i.g*=h/oh;}this.mobile=w/h<.85;this.playerHeight=h*(this.mobile?.22:.265);this.catchY=h-18-this.playerHeight*.62;this.basketHalf=this.playerHeight*.145;}
+ resize(w,h,portrait=w/h<1){const ow=this.w||w,oh=this.h||h;this.w=w;this.h=h;for(const i of this.items||[]){i.x*=w/ow;i.y*=h/oh;i.vx*=w/ow;i.vy*=h/oh;i.g*=h/oh;}this.mobile=portrait;this.playerHeight=h*(this.mobile?.22:.265);this.catchY=h-18-this.playerHeight*.62;this.basketHalf=this.playerHeight*.145;}
  start(){this.state='playing';this.score=0;this.lives=3;this.time=0;this.items=[];this.effects=[];this.player=.5;this.previousPlayer=.5;this.cry=0;this.pausedFrom=null;this.spawnIn=.8;this.onEvent('start');}
  pause(){if(this.state==='playing'||this.state==='hurt'){this.pausedFrom=this.state;this.state='paused';this.onEvent('pause');}}
  resume(){if(this.state==='paused'){this.state=this.pausedFrom||'playing';this.pausedFrom=null;this.onEvent('resume');}}

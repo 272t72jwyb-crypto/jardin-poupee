@@ -1,4 +1,5 @@
-import {GardenGame} from './engine.mjs?v=gag-7';
+import {GardenGame} from './engine.mjs?v=tablet-cat-11';
+import {catPose} from './cat.mjs?v=tablet-cat-11';
 import {BirdFlock,PERCHES,perchEnvironment} from './birds.mjs?v=gag-7';
 import {GardenAudio} from './audio.mjs?v=gag-7';
 const gardenAudio=new GardenAudio();
@@ -8,8 +9,33 @@ const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches,keys=new Se
 const images={},sprites=[];let starSprite,heartSprite,bearSprite,gagSprite;
 let mobileMoon,mobileNightCache;
 const load=src=>new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error(src));img.src=src;});
-function fit(){const rect=canvas.getBoundingClientRect();W=rect.width;H=rect.height;const dpr=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);game.resize(W,H);}
-new ResizeObserver(fit).observe(canvas);
+function fit(){
+ const rect=canvas.getBoundingClientRect();
+ if(rect.width<=0||rect.height<=0)return;
+ W=rect.width;H=rect.height;
+ const dpr=Math.min(devicePixelRatio||1,2),width=Math.round(W*dpr),height=Math.round(H*dpr);
+ if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height;}
+ ctx.setTransform(dpr,0,0,dpr,0,0);
+ game.resize(W,H,matchMedia('(orientation: portrait)').matches);
+}
+let fitPending=false;
+function scheduleFit(){if(fitPending)return;fitPending=true;requestAnimationFrame(()=>{fitPending=false;fit();});}
+function syncViewport(){
+ // Use the settled visible viewport, including Safari's expanding toolbars.
+ // Pinch zoom must not resize the world or move the basket.
+ const viewport=window.visualViewport;
+ if(!viewport||Math.abs(viewport.scale-1)<.01){
+  const height=viewport?.height||window.innerHeight;
+  if(height>0)document.documentElement.style.setProperty('--garden-viewport-height',`${height}px`);
+ }
+ scheduleFit();
+}
+new ResizeObserver(scheduleFit).observe(canvas.parentElement);
+window.addEventListener('resize',syncViewport);
+window.addEventListener('orientationchange',syncViewport);
+window.addEventListener('pageshow',syncViewport);
+window.visualViewport?.addEventListener('resize',syncViewport);
+matchMedia('(orientation: portrait)').addEventListener('change',syncViewport);
 function makeGlyph(glyph){const c=document.createElement('canvas');c.width=c.height=128;const cctx=c.getContext('2d');cctx.font='100px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif';cctx.textAlign='center';cctx.textBaseline='middle';cctx.fillText(glyph,64,69);return {img:c,x:0,y:0,w:128,h:128};}
 function trimSprite(img){const c=document.createElement('canvas');c.width=img.width;c.height=img.height;const g=c.getContext('2d');g.drawImage(img,0,0);const data=g.getImageData(0,0,c.width,c.height).data;let left=c.width,top=c.height,right=0,bottom=0;for(let y=0;y<c.height;y++)for(let x=0;x<c.width;x++)if(data[(y*c.width+x)*4+3]>60){left=Math.min(left,x);top=Math.min(top,y);right=Math.max(right,x);bottom=Math.max(bottom,y);}return {img,x:left,y:top,w:right-left+1,h:bottom-top+1};}
 function parseAtlas(img){const c=document.createElement('canvas');c.width=img.width;c.height=img.height;const cctx=c.getContext('2d');cctx.drawImage(img,0,0);const pixels=cctx.getImageData(0,0,c.width,c.height).data;for(let index=0;index<16;index++){const columns=[0,.254,.514,.754,1],rows=[0,.292,.583,.79,1],col=index%4,row=Math.floor(index/4),x0=Math.floor(columns[col]*img.width),y0=Math.floor(rows[row]*img.height),cw=Math.floor(columns[col+1]*img.width)-x0,ch=Math.floor(rows[row+1]*img.height)-y0;let x1=x0+cw,y1=y0+ch,x2=x0,y2=y0;for(let y=y0+2;y<y0+ch-2;y++){for(let x=x0+2;x<x0+cw-2;x++){if(pixels[(y*img.width+x)*4+3]>60){x1=Math.min(x1,x);x2=Math.max(x2,x);y1=Math.min(y1,y);y2=Math.max(y2,y);}}}if(x2<=x1){x1=x0;y1=y0;x2=x0+cw;y2=y0+ch;}sprites.push({img,x:x1,y:y1,w:x2-x1+1,h:y2-y1+1});}}
@@ -68,7 +94,22 @@ function mobileNightBackground(){
  return mobileNightCache;
 }
 function background(img){if(!img)return;if(game.mobile&&images.mobile){const m=images.mobile,half=m.width/2;if(img===images.night)ctx.drawImage(mobileNightBackground(),0,0,W,H);else ctx.drawImage(m,0,0,half,m.height,0,0,W,H);}else ctx.drawImage(img,0,0,img.width,img.height,0,0,W,H);}
-function drawCat(t){if(reduced){sprite(sprites[6],W*.83,H*.19,W*.1,H*.075);return;}const cycle=t%28;let x,y,jump=false,flip=false;if(cycle<9){x=.72+cycle/9*.16;y=.205;flip=false;}else if(cycle<11){const p=(cycle-9)/2;x=.88-p*.16;y=.205-Math.sin(p*Math.PI)*.11;jump=true;flip=true;}else if(cycle<18){x=.72-(cycle-11)/7*.09;y=.205;flip=true;}else if(cycle<20){const p=(cycle-18)/2;x=.63+p*.1;y=.205-Math.sin(p*Math.PI)*.09;jump=true;}else{x=.73;y=.205;}if(game.mobile){x=.25+(x-.63)*1.3;y=.095+(x-.25)*.11-(jump?Math.sin((cycle%1)*Math.PI)*.03:0);}else y-=.073;const walk=cycle<9||cycle>11&&cycle<18;const bob=walk?Math.sin(t*12)*1.4:0;sprite(sprites[jump?7:6],x*W,y*H+bob,W*(game.mobile?.14:.095),H*.10,flip,walk?Math.sin(t*9)*.025:0);if(game.state!=='paused'&&game.state!=='hurt'&&(cycle>=11&&cycle<11.06||cycle>=20&&cycle<20.06))petalBurst(x*W,(y+.02)*H);}
+let previousCat=null;
+function drawCat(t,night,dt){
+ const pose=catPose(t,game.mobile,night,reduced);
+ if(!pose){previousCat=null;return;}
+ const s=sprites[pose.jump?7:6];
+ const scale=Math.min(W*(game.mobile?.14:.095)/s.w,H*.10/s.h);
+ // Position the paws on the branch, rather than the centre of the picture.
+ // Rotate around that contact point so walking never lifts the whole cat.
+ const angle=pose.jump?0:Math.atan2(pose.dy*H,Math.abs(pose.dx)*W)*(pose.dx<0?-1:1);
+ ctx.save();ctx.globalAlpha=pose.alpha;ctx.translate(pose.x*W,pose.y*H);ctx.rotate(angle);
+ if(pose.flip)ctx.scale(-1,1);
+ ctx.drawImage(s.img,s.x,s.y,s.w,s.h,-s.w*.55*scale,-s.h*.96*scale,s.w*scale,s.h*scale);
+ ctx.restore();
+ if(dt>0&&previousCat?.jump&&!pose.jump&&previousCat.environment===pose.environment)petalBurst(pose.x*W,pose.y*H);
+ previousCat=pose;
+}
 // Flight poses have their feet aligned, so wing changes never move the body.
 const flightRects=[
  [[45,13,423,334,251,292],[457,114,853,378,667,283]],
@@ -94,7 +135,7 @@ function drawBirds(t,dt,night){
 function drawPetals(t,dt){for(const p of petals){const x=((p.x+t*p.speed*.23+Math.sin(t*.5+p.sway)*.025)%1.15)*W-.05*W,y=((p.y+t*p.speed)%1.13)*H-H*.06;ctx.save();ctx.translate(x,y);ctx.rotate(t+p.sway);ctx.fillStyle=p.leaf?'#aec378':'#f8bbcd';ctx.beginPath();ctx.ellipse(0,0,p.size,p.size*.47,0,0,Math.PI*2);ctx.fill();ctx.restore();}burst=burst.filter(p=>p.life>0);for(const p of burst){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=4*dt;ctx.save();ctx.globalAlpha=Math.min(1,p.life);ctx.fillStyle='#ffc4d8';ctx.beginPath();ctx.ellipse(p.x,p.y,p.size,p.size*.5,p.life,0,Math.PI*2);ctx.fill();ctx.restore();}}
 function draw(dt){ctx.clearRect(0,0,W,H);const t=clock,cycle=game.state==='ready'?0:game.time/105;const night=(1-Math.cos(cycle*Math.PI*2))/2; background(images.day);if(images.night){ctx.globalAlpha=night;background(images.night);ctx.globalAlpha=1;}const phase=night<.18?'Lumière du matin':night<.55?'Sous le ciel rose':night<.85?'Le jardin s’endort':'Sous les étoiles';if($('phase').textContent!==phase)$('phase').textContent=phase;
  if(night>.4&&!reduced){ctx.save();ctx.globalAlpha=(night-.4)*.8;for(let i=0;i<13;i++){const x=(.08+((i*.163)% .86))*W+Math.sin(t*.6+i)*9,y=H*(.62+((i*.117)%.30))+Math.cos(t+i)*7;ctx.fillStyle=`rgba(255,239,159,${.3+.5*Math.sin(t*1.5+i)**2})`;ctx.shadowColor='#fff9ac';ctx.shadowBlur=10;ctx.beginPath();ctx.arc(x,y,1.5,0,7);ctx.fill();}ctx.restore();}
- if(artReady){const manH=H*(game.mobile?.11:.15);const source=game.thrower;sprite(sprites[source.pose>0?5:4],source.x*W,source.y*H-manH*.30,manH*1.3,manH,source.x>.5);drawCat(reduced?0:t);drawBirds(t,dt,night);
+ if(artReady){const manH=H*(game.mobile?.11:.15);const source=game.thrower;sprite(sprites[source.pose>0?5:4],source.x*W,source.y*H-manH*.30,manH*1.3,manH,source.x>.5);drawCat(reduced?0:t,night,dt);drawBirds(t,dt,night);
  for(const i of game.items){const size=Math.min(W,H)*(game.mobile?.073:.056);const s=[sprites[13],starSprite,bearSprite,sprites[14],heartSprite,sprites[15],gagSprite][i.kind];ctx.save();ctx.shadowColor=['#fbc5db','#ffe69c','#e6b780','#ff8196','#ff7a93','#fca8d5','#ff7466'][i.kind];ctx.shadowBlur=night>0.4?15:5;sprite(s,i.x,i.y,size,size,false,Math.sin(i.age*2+i.spin)*.17);ctx.restore();}
  const crying=game.cry>0,moving=game.state==='playing'&&Math.abs(game.player-game.previousPlayer)>.0001,dir=game.player<game.previousPlayer;
  const pose=crying?3:moving?(dir?2:1):0,ph=game.playerHeight,py=H-18-ph/2,cryTime=2-game.cry;
@@ -123,7 +164,7 @@ function frame(ms){
  draw(frozen||game.state==='hurt'?0:dt);requestAnimationFrame(frame);
 }
 async function loadArt(){$('play').disabled=true;$('play').textContent='Le jardin se réveille…';try{const [day,night,atlas,mobile,star,heart,flight,bear,gag]=await Promise.all([load('assets/day.png'),load('assets/night.png'),load('assets/atlas.png'),load('assets/mobile.png'),load('assets/star.png'),load('assets/heart.png'),load('assets/birds-flight.png'),load('assets/nounours-guimauve.png'),load('assets/gag-ball.webp')]);images.day=day;images.night=night;images.mobile=mobile;images.flight=flight;parseAtlas(atlas);bearSprite=trimSprite(bear);gagSprite=trimSprite(gag);$('prize-bear').src=cutoutData(bearSprite);starSprite={img:star,x:0,y:0,w:star.width,h:star.height};heartSprite={img:heart,x:0,y:0,w:heart.width,h:heart.height};$('prize-device').src=cutoutData(sprites[15]);$('prize-device').hidden=false;$('device-fallback').hidden=true;artReady=true;$('play').disabled=false;$('play').textContent='Entrer dans le jardin';}catch(e){$('play').disabled=false;$('play').textContent='Réessayer';$('panel-text').textContent='Le décor n’a pas pu se charger. Vérifie ta connexion et réessaie.';console.error('Chargement du jardin :',e.message);}}
-fit();hud();requestAnimationFrame(frame);loadArt();
+syncViewport();fit();hud();requestAnimationFrame(frame);loadArt();
 if(document.modelContext?.registerTool){
  const lifecycle=new AbortController();window.addEventListener('pagehide',()=>lifecycle.abort(),{once:true});
  const result=()=>({state:game.state,score:game.score,lives:game.lives,elapsedSeconds:Math.floor(game.time)});
