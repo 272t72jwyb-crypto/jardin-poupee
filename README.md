@@ -19,3 +19,11 @@ Les oiseaux suivent un cycle de vol, atterrissage, repos et départ. Leurs patte
 Probabilités par lancer : fleurs 32,30 %, étoiles 23,75 %, nounours 17,10 %, bouches 12,35 %, cœurs 6,65 %, Gode 2,85 %, gag ball 5 %. Chaque tirage est indépendant.
 
 À chaque vie perdue, le jeu se fige deux secondes pendant les sanglots du personnage et une mélodie originale au piano synthétisé et notes cristallines. Les cadeaux, le panier et le décor restent immobiles ; la partie reprend ensuite, ou affiche le résultat après la dernière vie. La pause manuelle ou le changement d’onglet suspend également cette séquence et son audio.
+
+Chaque palier de 100 points franchi rend une vie manquante, sans dépasser trois vies.
+
+Après la perte de la dernière vie et les deux secondes de pleurs, un score final strictement supérieur à 100 déclenche une scène romantique. Une des six scènes animées et une des quinze phrases sont choisies indépendamment au hasard. La scène reste affichée jusqu’à « Rejouer » ou « Voir le résultat ». Le bouton de pause et la préférence système de réduction des animations sont pris en compte. Les animations utilisent huit poses dessinées par scène, avec oiseaux et pétales animés.
+
+Pour ajouter une phrase, complète le tableau `ROMANTIC_PHRASES` de `dist/romance-data.mjs`. Lors de sa publication, renouvelle les paramètres de version des modules concernés pour éviter de conserver une ancienne liste en cache.
+
+Tests des scènes : `node test-romance.mjs` et `node test-romance-motion.mjs`.

@@ -1,0 +1,29 @@
+.watching-finale{overflow:hidden}
+.romantic-finale{position:fixed;inset:0;width:100%;height:100%;height:100dvh;max-width:none;max-height:none;padding:0;margin:0;border:0;background:#12271f;color:#fff8ea;overflow:auto}
+.romantic-finale::backdrop{background:#12271f}
+.finale-backdrop{position:fixed;inset:-5%;width:110%;height:110%;object-fit:cover;filter:blur(30px) brightness(.28);opacity:.65;pointer-events:none}
+.finale-content{position:relative;min-height:100%;height:100%;display:grid;grid-template-rows:auto minmax(100px,1fr) auto;gap:14px;padding:max(20px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) max(20px,env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left));max-width:1400px;margin:auto}
+.finale-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:14px;color:#f3dec0;letter-spacing:.03em}
+.finale-heading>span:first-child{font-family:'Cormorant Garamond',Georgia,serif;font-size:23px;font-style:italic}
+.finale-picture{min-height:0;position:relative;margin:0;display:flex;align-items:center;justify-content:center;overflow:hidden;isolation:isolate}
+#finale-art{display:block;width:100%;height:100%;object-fit:contain;opacity:0;transform:scale(.98);transition:opacity 1.1s ease,transform 10s ease-out;filter:drop-shadow(0 10px 30px #0005)}
+.revealed #finale-art{opacity:1;transform:scale(1)}
+.finale-caption{text-align:center;max-width:950px;margin:0 auto;width:100%;padding:0 12px}
+#finale-title{font-family:'Nunito Sans',sans-serif;font-size:12px;line-height:1.5;text-transform:uppercase;letter-spacing:.18em;color:#efc5a4;margin:0 0 10px}
+#finale-phrase{font:500 clamp(22px,3.1vw,38px)/1.23 'Cormorant Garamond',Georgia,serif;margin:0 auto 20px;color:#fff9ec;text-wrap:balance;overflow-wrap:anywhere;max-width:870px;opacity:0;transform:translateY(8px);transition:opacity 1s .45s ease,transform 1s .45s ease}
+.revealed #finale-phrase{opacity:1;transform:translateY(0)}
+.finale-actions{display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap}
+.finale-actions button{font-size:14px;padding:11px 20px;border-radius:25px;min-height:44px;border:1px solid #fff5;background:#fff1;color:#fff8ea}
+.finale-actions #finale-replay{background:#f5e7ce;color:#243d30;border-color:#f5e7ce;font-weight:800}
+#finale-status{position:absolute;inset:35% 10% auto;text-align:center;font-size:16px;line-height:1.5;background:#17352de8;border-radius:15px;padding:20px;z-index:2}
+@media(max-width:650px){.finale-content{gap:12px;padding-left:14px;padding-right:14px}.finale-heading{font-size:12px}.finale-heading>span:first-child{font-size:21px}.finale-caption{padding:0 5px}#finale-phrase{font-size:26px;margin-bottom:18px}.finale-actions{gap:8px}.finale-actions button{padding:10px 15px}#finale-title{font-size:10px}}
+@media(max-height:550px) and (orientation:landscape){.finale-content{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:12px}.finale-heading{grid-column:1/-1}.finale-caption{align-self:center}#finale-phrase{font-size:23px}.finale-actions button{padding:9px 12px}}
+@media(prefers-reduced-motion:reduce){#finale-art,#finale-phrase{transition:none;transform:none}}
+
+/* Character poses are animated on this canvas; no simulated camera-only motion. */
+#finale-motion{width:100%;height:100%;object-fit:contain;opacity:0;transition:opacity .65s ease;filter:drop-shadow(0 10px 30px #0005)}
+.revealed #finale-motion{opacity:1}
+#finale-art{transform:none;transition:opacity .65s ease}
+.revealed #finale-art{transform:none}
+#finale-motion-toggle{font-size:12px}
+@media(prefers-reduced-motion:reduce){#finale-motion{transition:none}}

@@ -6,6 +6,7 @@
  <title>Le jardin de poupée</title>
  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23203d37'/%3E%3Ctext x='32' y='47' text-anchor='middle' font-size='44'%3E🌸%3C/text%3E%3C/svg%3E">
  <link rel="stylesheet" href="style.css?v=tablet-cat-11">
+ <link rel="stylesheet" href="romance.css?v=romance-15">
 </head>
 <body>
  <main>
@@ -19,6 +20,22 @@
   </section>
   <footer><span class="footer-scores">Fleurs <b>1</b><i>·</i> Étoiles <b>2</b><i>·</i> Nounours <b>3</b><i>·</i> Bouches <b>4</b><i>·</i> Cœurs <b>8</b><i>·</i> Gode <b>12</b><i>·</i> Gag ball <b>50</b></span><span class="footer-note">Chaque cadeau compte.</span></footer>
  </main>
- <script type="module" src="game.js?v=extra-life-12"></script>
+ <dialog id="romantic-finale" class="romantic-finale" aria-labelledby="finale-title" aria-describedby="finale-phrase">
+  <img id="finale-backdrop" class="finale-backdrop" alt="" aria-hidden="true">
+  <div class="finale-content">
+   <div class="finale-heading"><span>Un instant à deux</span><span id="finale-score"></span></div>
+   <figure class="finale-picture"><canvas id="finale-motion" role="img" hidden></canvas><img id="finale-art" alt=""><p id="finale-status" role="status" hidden></p></figure>
+   <div class="finale-caption">
+    <h2 id="finale-title"></h2><p id="finale-phrase"></p>
+    <div class="finale-actions">
+     <button id="finale-retry" hidden>Réessayer l’animation</button>
+     <button id="finale-replay" autofocus>Rejouer</button>
+     <button id="finale-result">Voir le résultat</button>
+     <button id="finale-motion-toggle" aria-pressed="true" hidden>Mettre l’animation en pause</button>
+    </div>
+   </div>
+  </div>
+ </dialog>
+ <script type="module" src="game.js?v=romance-15"></script>
 </body>
 </html>

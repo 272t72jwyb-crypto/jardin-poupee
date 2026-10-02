@@ -1,3 +1,5 @@
+import {RomanticFinale} from './romance.mjs?v=romance-15';
+import {qualifiesForFinale} from './romance-data.mjs?v=romance-15';
 import {GardenGame} from './engine.mjs?v=extra-life-12';
 import {catPose} from './cat.mjs?v=tablet-cat-11';
 import {BirdFlock,PERCHES,perchEnvironment} from './birds.mjs?v=gag-7';
@@ -6,6 +8,8 @@ const gardenAudio=new GardenAudio();
 const $=id=>document.getElementById(id),canvas=$('scene'),ctx=canvas.getContext('2d'),game=new GardenGame();
 let W=1000,H=700,clock=0,last=0,artReady=false,muted=false,drag=null,toastUntil=0;
 const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches,keys=new Set(),held=new Set();
+const finale=new RomanticFinale({getAssets:()=>({images,sprites}),onReplay:()=>{clearInput();gardenAudio.unlock();game.start();},onClose:()=>$('play').focus()});
+
 const images={},sprites=[];let starSprite,heartSprite,bearSprite,gagSprite;
 let mobileMoon,mobileNightCache;
 const load=src=>new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error(src));img.src=src;});
@@ -50,7 +54,7 @@ game.onEvent=(event,value)=>{
  if(event==='extra-life'){$('toast').textContent=`♥ +${value} vie${value>1?'s':''} !`;toastUntil=clock+2;}
  if(event==='miss'){clearInput();gardenAudio.loss();$('toast').textContent='Oh non… −1 vie';toastUntil=Infinity;}
  if(event==='recover'){clearInput();toastUntil=0;}
- if(event==='over'){toastUntil=0;$('pause').disabled=true;clearInput();overlay('over');}
+ if(event==='over'){toastUntil=0;$('pause').disabled=true;clearInput();overlay('over');if(qualifiesForFinale(game))finale.show(game.score);}
  if(event==='pause'){gardenAudio.pause();clearInput();overlay('pause');$('pause').textContent='▶';$('pause').setAttribute('aria-label','Reprendre');}
  if(event==='resume'||event==='start'){
   if(event==='start')gardenAudio.stop();gardenAudio.resume();$('overlay').hidden=true;$('pause').textContent='Ⅱ';$('pause').setAttribute('aria-label','Mettre en pause');$('pause').disabled=false;toastUntil=game.cry>0?Infinity:0;
@@ -59,7 +63,7 @@ game.onEvent=(event,value)=>{
 $('play').addEventListener('click',()=>{if(!artReady){loadArt();return;}clearInput();gardenAudio.unlock();if(game.state==='paused')game.resume();else game.start();});
 $('pause').addEventListener('click',()=>game.state==='paused'?game.resume():game.pause());
 $('sound').addEventListener('click',()=>{muted=!muted;gardenAudio.setEnabled(!muted);$('sound').setAttribute('aria-pressed',String(!muted));$('sound').setAttribute('aria-label',muted?'Activer les sons':'Couper les sons');if(!muted){if(game.cry>0){gardenAudio.loss(2-game.cry);if(game.state==='paused')gardenAudio.pause();}else if(game.state!=='paused')gardenAudio.catch();}});
-document.addEventListener('keydown',e=>{if(e.target?.tagName==='BUTTON'&&(e.key===' '||e.key==='Enter'))return;if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' '].includes(e.key))e.preventDefault();if(e.key==='Escape'||e.key.toLowerCase()==='p'){game.state==='paused'?game.resume():game.pause();return;}if(e.key===' '&&game.state==='ready'&&artReady){gardenAudio.unlock();game.start();return;}keys.add(e.key.toLowerCase());});document.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));
+document.addEventListener('keydown',e=>{if(finale.dialog.open)return;if(e.target?.tagName==='BUTTON'&&(e.key===' '||e.key==='Enter'))return;if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' '].includes(e.key))e.preventDefault();if(e.key==='Escape'||e.key.toLowerCase()==='p'){game.state==='paused'?game.resume():game.pause();return;}if(e.key===' '&&game.state==='ready'&&artReady){gardenAudio.unlock();game.start();return;}keys.add(e.key.toLowerCase());});document.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));
 for(const [id,direction] of [['left',-1],['right',1]]){const b=$(id);b.addEventListener('pointerdown',e=>{e.preventDefault();if(game.state!=='playing')return;b.setPointerCapture(e.pointerId);held.add(direction);drag=null;b.classList.add('held');});const release=()=>{held.delete(direction);b.classList.remove('held');};b.addEventListener('pointerup',release);b.addEventListener('pointercancel',release);b.addEventListener('lostpointercapture',release);}
 canvas.addEventListener('pointerdown',e=>{if(game.state!=='playing')return;canvas.setPointerCapture(e.pointerId);drag=(e.clientX-canvas.getBoundingClientRect().left)/W;});canvas.addEventListener('pointermove',e=>{if(drag!==null)drag=(e.clientX-canvas.getBoundingClientRect().left)/W;});for(const ev of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(ev,()=>drag=null);
 document.addEventListener('visibilitychange',()=>{if(document.hidden){game.pause();clearInput();last=0;}});window.addEventListener('blur',()=>{game.pause();clearInput();});
@@ -155,6 +159,7 @@ function draw(dt){ctx.clearRect(0,0,W,H);const t=clock,cycle=game.state==='ready
  for(const e of game.effects){ctx.save();ctx.globalAlpha=Math.min(1,e.life*2);if(e.kind==='catch'){const progress=1-e.life;ctx.fillStyle='#fffbea';ctx.strokeStyle='#477052';ctx.lineWidth=3;ctx.font='700 27px Georgia';ctx.textAlign='center';const y=e.y-20-progress*55;ctx.strokeText('+'+e.value,e.x,y);ctx.fillText('+'+e.value,e.x,y);ctx.strokeStyle='#fff0c4';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(e.x,e.y,10+progress*32,0,7);ctx.stroke();}else{ctx.fillStyle='#f7ced7';ctx.beginPath();ctx.ellipse(e.x,e.y,18*(1-e.life),4,0,0,7);ctx.fill();}ctx.restore();}
  }if(!reduced)drawPetals(t,dt);if(game.cry>0)$('toast').textContent=game.lives>0?'Oh non… −1 vie · Reprise dans '+Math.ceil(game.cry)+' s':'Oh non… −1 vie';$('toast').style.opacity=clock<toastUntil?'1':'0';}
 function frame(ms){
+ if(finale.dialog.open){last=ms;requestAnimationFrame(frame);return;}
  const elapsed=last?Math.max(0,(ms-last)/1000):0,dt=Math.min(elapsed,.05);last=ms;
  const frozen=game.state==='paused'||game.state==='hurt';
  if(game.state!=='paused'){
@@ -164,11 +169,11 @@ function frame(ms){
  }
  draw(frozen||game.state==='hurt'?0:dt);requestAnimationFrame(frame);
 }
-async function loadArt(){$('play').disabled=true;$('play').textContent='Le jardin se réveille…';try{const [day,night,atlas,mobile,star,heart,flight,bear,gag]=await Promise.all([load('assets/day.png'),load('assets/night.png'),load('assets/atlas.png'),load('assets/mobile.png'),load('assets/star.png'),load('assets/heart.png'),load('assets/birds-flight.png'),load('assets/nounours-guimauve.png'),load('assets/gag-ball.webp')]);images.day=day;images.night=night;images.mobile=mobile;images.flight=flight;parseAtlas(atlas);bearSprite=trimSprite(bear);gagSprite=trimSprite(gag);$('prize-bear').src=cutoutData(bearSprite);starSprite={img:star,x:0,y:0,w:star.width,h:star.height};heartSprite={img:heart,x:0,y:0,w:heart.width,h:heart.height};$('prize-device').src=cutoutData(sprites[15]);$('prize-device').hidden=false;$('device-fallback').hidden=true;artReady=true;$('play').disabled=false;$('play').textContent='Entrer dans le jardin';}catch(e){$('play').disabled=false;$('play').textContent='Réessayer';$('panel-text').textContent='Le décor n’a pas pu se charger. Vérifie ta connexion et réessaie.';console.error('Chargement du jardin :',e.message);}}
+async function loadArt(){$('play').disabled=true;$('play').textContent='Le jardin se réveille…';try{const [day,night,atlas,mobile,star,heart,flight,bear,gag]=await Promise.all([load('assets/day.png'),load('assets/night.png'),load('assets/atlas.png'),load('assets/mobile.png'),load('assets/star.png'),load('assets/heart.png'),load('assets/birds-flight.png'),load('assets/nounours-guimauve.png'),load('assets/gag-ball.webp')]);images.day=day;images.night=night;images.mobile=mobile;images.flight=flight;parseAtlas(atlas);bearSprite=trimSprite(bear);gagSprite=trimSprite(gag);$('prize-bear').src=cutoutData(bearSprite);starSprite={img:star,x:0,y:0,w:star.width,h:star.height};heartSprite={img:heart,x:0,y:0,w:heart.width,h:heart.height};$('prize-device').src=cutoutData(sprites[15]);$('prize-device').hidden=false;$('device-fallback').hidden=true;artReady=true;finale.warm();$('play').disabled=false;$('play').textContent='Entrer dans le jardin';}catch(e){$('play').disabled=false;$('play').textContent='Réessayer';$('panel-text').textContent='Le décor n’a pas pu se charger. Vérifie ta connexion et réessaie.';console.error('Chargement du jardin :',e.message);}}
 syncViewport();fit();hud();requestAnimationFrame(frame);loadArt();
 if(document.modelContext?.registerTool){
  const lifecycle=new AbortController();window.addEventListener('pagehide',()=>lifecycle.abort(),{once:true});
- const result=()=>({state:game.state,score:game.score,lives:game.lives,elapsedSeconds:Math.floor(game.time)});
+ const result=()=>({state:game.state,score:game.score,lives:game.lives,elapsedSeconds:Math.floor(game.time),romanticScene:finale.dialog.open?finale.choice.scene.id:null});
  const tools=[{name:'read_garden_game',title:'Lire la partie',description:'Lire le score, les vies et l’état de la partie en cours.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true},execute:result},{name:'control_garden_game',title:'Démarrer ou mettre en pause',description:'Démarrer une nouvelle partie, mettre en pause ou reprendre le jeu affiché.',inputSchema:{type:'object',properties:{action:{type:'string',enum:['start','pause','resume']}},required:['action'],additionalProperties:false},annotations:{readOnlyHint:false},execute:input=>{if(!input||!['start','pause','resume'].includes(input.action)||Object.keys(input).some(k=>k!=='action'))throw new Error('Action invalide');if(!artReady)throw new Error('Le décor est encore en cours de chargement');if(input.action==='start'){if(game.state==='playing'||game.state==='paused'||game.state==='hurt')throw new Error('Une partie est déjà en cours');clearInput();game.start();}else if(input.action==='pause')game.pause();else game.resume();return result();}}];
  for(const tool of tools){try{Promise.resolve(document.modelContext.registerTool(tool,{signal:lifecycle.signal})).catch(()=>{});}catch{}}
 }
